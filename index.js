@@ -1,16 +1,23 @@
 const express = require('express');
 const multer = require('multer');
+const cors = require('cors')();
 const { SpeechClient } = require('@google-cloud/speech');
 const fs = require('fs');
 const { Readable } = require('stream');
 
 const app = express();
+
+
 const authRoutes = require('./Routes/AuthRoutes');
-const port = 3000;
+
+const audioRoutes = require('./Routes/AudioRoutes');
+const port = 2000;
 app.use(express.json()); // Parse JSON bodies
+app.use(cors);
 
 // Use AuthRoutes with a prefix for authentication routes
 app.use('/auth', authRoutes);
+app.use('/api', audioRoutes);
 // Set up multer to handle audio file uploads in memory
 const upload = multer();
 
