@@ -1,7 +1,8 @@
 const express = require('express');
 const multer = require('multer');
-const cors = require('cors')();
+const cors = require('cors');
 const { SpeechClient } = require('@google-cloud/speech');
+const cookieParser = require('cookie-parser');
 const fs = require('fs');
 const { Readable } = require('stream');
 
@@ -13,11 +14,16 @@ const authRoutes = require('./Routes/AuthRoutes');
 const audioRoutes = require('./Routes/AudioRoutes');
 const port = 2000;
 app.use(express.json()); // Parse JSON bodies
-app.use(cors);
+app.use(cookieParser());
+app.use(cors({
+  origin: 'http://localhost:3000', // Allow only localhost:3000
+  credentials: true, // Allow credentials (cookies, headers)
+}));
+
 
 // Use AuthRoutes with a prefix for authentication routes
 app.use('/auth', authRoutes);
-app.use('/api', audioRoutes);
+app.use('/audio', audioRoutes);
 // Set up multer to handle audio file uploads in memory
 const upload = multer();
 

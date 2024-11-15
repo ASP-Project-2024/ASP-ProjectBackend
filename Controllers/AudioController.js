@@ -1,8 +1,7 @@
 const multer = require('multer');
-const fs = require('fs');
 const audioService = require('../services/audioService');
 
-// Multer configuration for `.webm` files
+// Multer configuration for `.webm` files (disk storage)
 const uploadWebm = multer({
     dest: 'uploads/',
     fileFilter: (req, file, cb) => {
@@ -14,9 +13,9 @@ const uploadWebm = multer({
     },
 });
 
-// Multer configuration for `.txt` files
+// Multer configuration for `.txt` files (memory storage)
 const uploadTxt = multer({
-    dest: 'uploads/',
+    storage: multer.memoryStorage(),
     fileFilter: (req, file, cb) => {
         if (file.mimetype === 'text/plain') {
             cb(null, true);
@@ -34,36 +33,59 @@ const uploadWebmFile = (req, res) => {
         }
 
         try {
-            const filePath = req.file.path; // Path to the uploaded .webm file
-            const response = await audioService.forwardFile(filePath, 'audio/webm'); // Forward file
-            res.status(200).json({ message: 'WebM file forwarded successfully', response });
+            if (!req.file) {
+                return res.status(400).json({ error: 'No WebM file uploaded.' });
+            }
+
+            const filePath = req.file.path; // Path to the uploaded `.webm` file
+
+            // Process the audio file
+            const transcription = await audioService.transcribeAudio(filePath);
+
+            res.status(200).json({
+                message: 'WebM file processed successfully',
+                transcription,
+            });
         } catch (error) {
-            res.status(500).json({ error: 'Error processing WebM file', details: error.message });
+            res.status(500).json({
+                error: 'Error processing WebM file',
+                details: error.message,
+            });
         } finally {
-            fs.unlinkSync(req.file.path); // Clean up uploaded file
+            // Clean up uploaded file
+            if (req.file && req.file.path) {
+                fs.unlink(req.file.path, (err) => {
+                    if (err) console.error('Error deleting file:', err);
+                });
+            }
         }
     });
 };
 
 // API for handling `.txt` files
-const uploadTxtFile = (req, res) => {
-    uploadTxt.single('textFile')(req, res, async (err) => {
-        if (err) {
-            return res.status(400).json({ error: err.message });
+const uploadTxtFile = async (req, res) => {
+    try {
+        const { paragraph } = req.body; // Extract paragraph from the request body
+
+        if (!paragraph || typeof paragraph !== 'string') {
+            return res.status(400).json({ error: 'Invalid or missing paragraph.' });
         }
 
-        try {
-            const filePath = req.file.path; // Path to the uploaded .txt file
-            const fileContent = fs.readFileSync(filePath, 'utf8'); // Read .txt content
-            const response = await audioService.forwardText(fileContent); // Forward text
-            res.status(200).json({ message: 'Text file forwarded successfully', response });
-        } catch (error) {
-            res.status(500).json({ error: 'Error processing text file', details: error.message });
-        } finally {
-            fs.unlinkSync(req.file.path); // Clean up uploaded file
-        }
-    });
+        // Process the text content (e.g., summarization)
+        const summary = await audioService.summarizeText(paragraph);
+
+        res.status(200).json({
+            message: 'Paragraph processed successfully',
+            summary,
+        });
+    } catch (error) {
+        res.status(500).json({
+            error: 'Error processing paragraph',
+            details: error.message,
+        });
+    }
 };
+
 
 module.exports = {
     uploadWebmFile,
