@@ -123,7 +123,7 @@ class AuthService {
         // Clear the JWT token cookie
         res.clearCookie('accessToken', {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: true,
         });
 
         return { message: 'Logout successful' };
