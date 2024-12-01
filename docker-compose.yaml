@@ -1,0 +1,13 @@
+services:
+  backend:
+    build: .
+    image: asp_project/backend
+  db:
+    image: postgres:16-alpine
+    volumes:
+      - pg_data:/var/lib/postgresql
+    environment:
+        PG_DATA: /var/lib/postgresql/data
+
+volumes:
+  pg_data:
