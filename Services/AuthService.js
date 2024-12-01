@@ -56,6 +56,7 @@ class AuthService {
 
     // Manual Signup
     static async signup(res, { emailid, firstname, lastname, phoneno, password }) {
+        console.log(emailid, firstname, lastname, phoneno, password);
         const userExists = await pool.query('SELECT * FROM users WHERE emailid = $1', [emailid]);
         if (userExists.rows.length > 0) {
             const existingUser = userExists.rows[0];
@@ -123,7 +124,7 @@ class AuthService {
         // Clear the JWT token cookie
         res.clearCookie('accessToken', {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: true,
         });
 
         return { message: 'Logout successful' };

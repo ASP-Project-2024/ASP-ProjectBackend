@@ -1,5 +1,6 @@
 const express = require('express');
 const multer = require('multer');
+const bodyParser = require('body-parser');
 const cors = require('cors');
 const { SpeechClient } = require('@google-cloud/speech');
 const cookieParser = require('cookie-parser');
@@ -8,11 +9,13 @@ const { Readable } = require('stream');
 
 const app = express();
 
-
+app.use(bodyParser.json({ limit: '100mb' })); // Increase the limit for large audio files
+app.use(bodyParser.urlencoded({ extended: true }));
 const authRoutes = require('./Routes/AuthRoutes');
-
+const uploadRoutes=require('./Routes/UploadRoutes')
 const audioRoutes = require('./Routes/AudioRoutes');
-const port = 2000;
+const codeRoutes =require('./Routes/CodeRoutes')
+const port = 4000;
 app.use(express.json()); // Parse JSON bodies
 app.use(cookieParser());
 app.use(cors({
@@ -24,6 +27,8 @@ app.use(cors({
 // Use AuthRoutes with a prefix for authentication routes
 app.use('/auth', authRoutes);
 app.use('/audio', audioRoutes);
+app.use('/code', codeRoutes);
+//app.use('/upload', uploadRoutes);
 // Set up multer to handle audio file uploads in memory
 const upload = multer();
 

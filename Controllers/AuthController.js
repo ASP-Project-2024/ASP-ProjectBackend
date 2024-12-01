@@ -26,6 +26,7 @@ class AuthController {
     // Manual Signup
     static async signup(req, res) {
         try {
+            console.log("hi");
             const { emailid, firstname, lastname, phoneno, password } = req.body;
             const result = await AuthService.signup(res, { emailid, firstname, lastname, phoneno, password });
             return res.status(201).json(result); // Send success message

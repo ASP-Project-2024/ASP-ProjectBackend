@@ -10,6 +10,6 @@ router.post('/google-login', AuthController.googleLogin);
 router.post('/signup', AuthController.signup);
 router.post('/login', AuthController.login);
 router.get('/profile', authenticateToken, AuthController.profile); // Protected route
-router.post('/logout', AuthController.logout);
+router.get('/logout', authenticateToken,AuthController.logout);
 
 module.exports = router;

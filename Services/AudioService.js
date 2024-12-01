@@ -1,55 +1,63 @@
 const fs = require('fs');
-const axios = require('axios');
-const { exec } = require('child_process');
+const path = require('path');
+const fetch = require('node-fetch'); // To forward the audio to the Flask API (if needed)
+const FormData = require('form-data'); // To create multipart/form-data requests
 
-// Example: Function to transcribe audio
-const transcribeAudio = async (filePath) => {
-    try {
-        // Simulate calling an external API or using a local library for transcription
-        const response = await axios.post('https://example.com/api/transcribe', {
-            audioFilePath: filePath,
-        });
+const processAudio = async (base64Audio) => {
+  try {
+    // Decode the Base64 string into a Buffer (binary data)
+    const audioBuffer = Buffer.from(base64Audio, 'base64');
 
-        // Return the transcription result
-        return response.data.transcription;
-    } catch (error) {
-        console.error('Error transcribing audio:', error);
-        throw new Error('Failed to transcribe audio');
-    }
+    // Save the audio file to disk (optional)
+    const audioPath = path.join(__dirname, '..', 'uploads', 'audio.webm'); // Path to save the audio file
+    fs.writeFileSync(audioPath, audioBuffer);
+
+    // Optionally, forward the audio to a Flask API (if needed)
+    const flaskResponse = await forwardToFlaskAPI(audioBuffer);
+
+    // Return a successful response after processing
+    return {
+      success: true,
+      message: 'Audio processed successfully.',
+      flaskResponse: flaskResponse,
+    };
+  } catch (error) {
+    console.error('Error in audio processing service:', error);
+    throw new Error('Error processing audio data');
+  }
 };
 
-// Example: Function to summarize text
-const summarizeText = async (text) => {
-    try {
-        // Simulate calling an external API or using NLP libraries for text summarization
-        // const response = await axios.post('https://example.com/api/summarize', {
-        //     text,
-        // });
-        console.log(text);
-        // Return the summary result
-        return "summary";
-    } catch (error) {
-        console.error('Error summarizing text:', error);
-        throw new Error('Failed to summarize text');
-    }
-};
+const forwardToFlaskAPI = async (audioBuffer) => {
+  try {
+    // Log the length of the audio buffer to ensure it's not empty
+    console.log('Audio buffer size:', audioBuffer.length);
 
-// Example: Convert `.webm` to another audio format (optional)
-const convertWebmToMp3 = (inputPath, outputPath) => {
-    return new Promise((resolve, reject) => {
-        const command = `ffmpeg -i ${inputPath} ${outputPath}`;
-        exec(command, (err, stdout, stderr) => {
-            if (err) {
-                console.error('Error converting audio format:', stderr);
-                return reject(new Error('Audio conversion failed'));
-            }
-            resolve(outputPath);
-        });
+    // Create a FormData object and append the audio file
+    const formData = new FormData();
+    formData.append('audio_file', audioBuffer, { filename: 'audio.webm', contentType: 'audio/webm' });
+
+    // Log FormData to check if the audio is correctly attached
+    console.log('FormData object:', formData);
+
+    // Make the API request to Flask
+    const response = await fetch('http://127.0.0.1:5000/api/process_audio', {
+      method: 'POST',
+      body: formData, // Send FormData (multipart)
     });
+
+    if (!response.ok) {
+      throw new Error('Failed to forward audio to Flask API');
+    }
+
+    // Return Flask response data
+    return await response.json();
+  } catch (error) {
+    console.error('Error forwarding audio to Flask API:', error);
+    throw new Error('Error forwarding audio to Flask');
+  }
 };
+
 
 module.exports = {
-    transcribeAudio,
-    summarizeText,
-    convertWebmToMp3,
+  processAudio,
 };
