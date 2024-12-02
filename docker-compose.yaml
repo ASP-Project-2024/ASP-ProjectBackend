@@ -2,12 +2,23 @@ services:
   backend:
     build: .
     image: asp_project/backend
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      DATABASE_URL: "postgresql://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}:db:5432/interview"
+      JWT_SECRET: Iavohyu7Yeacoh6i
+    ports:
+      - 4000:4000
   db:
     image: postgres:16-alpine
     volumes:
       - pg_data:/var/lib/postgresql
+      - ./database/:/docker-entrypoint-initdb.d
     environment:
-        PG_DATA: /var/lib/postgresql/data
+      PG_DATA: /var/lib/postgresql/data
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: interview
 
 volumes:
   pg_data:
