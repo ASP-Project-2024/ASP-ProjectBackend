@@ -5,6 +5,7 @@ services:
     environment:
       DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/interview"
       JWT_SECRET: Iavohyu7Yeacoh6i
+      PISTON_URL: "http://localhost:2000"
     ports:
       - 4000:4000
     depends_on:

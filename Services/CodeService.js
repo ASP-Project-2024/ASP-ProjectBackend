@@ -5,7 +5,7 @@ const executeCode = async (payload) => {
     try {
         console.log('Sending payload to Docker container:', payload);
 
-        const response = await axios.post('http://localhost:2000/api/v2/execute', payload, {
+        const response = await axios.post(`${process.env.PISTON_URL}/api/v2/execute`, payload, {
             timeout: 20000, // Increase timeout to 10 seconds
         });
 
