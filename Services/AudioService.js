@@ -40,7 +40,7 @@ const forwardToFlaskAPI = async (audioBuffer) => {
     console.log('FormData object:', formData);
 
     // Make the API request to Flask
-    const response = await fetch('http://127.0.0.1:5000/api/process_audio', {
+    const response = await fetch(`${process.env.WHISPER_URL}/api/process_audio`, {
       method: 'POST',
       body: formData, // Send FormData (multipart)
     });
